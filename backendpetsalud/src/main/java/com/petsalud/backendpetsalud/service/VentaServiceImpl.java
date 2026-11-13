@@ -1,6 +1,7 @@
 package com.petsalud.backendpetsalud.service;
 
 import com.petsalud.backendpetsalud.entity.Producto;
+import com.petsalud.backendpetsalud.entity.Rol;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.entity.Venta;
 import com.petsalud.backendpetsalud.repository.ProductoRepository;
@@ -31,6 +32,17 @@ public class VentaServiceImpl implements VentaService {
     public Venta realizarVenta(Long usuarioId, List<Long> productosIds) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if (usuario.getNombre() == null || usuario.getNombre().isBlank() ||
+            usuario.getApellido() == null || usuario.getApellido().isBlank() ||
+            usuario.getEmail() == null || usuario.getEmail().isBlank() ||
+            usuario.getDireccion() == null || usuario.getDireccion().isBlank()) {
+            throw new IllegalArgumentException("El usuario asociado no tiene sus datos obligatorios completos");
+        }
+
+        if (usuario.getRol() != Rol.ADMIN && usuario.getRol() != Rol.CLIENTE) {
+            throw new IllegalArgumentException("El rol del usuario no está autorizado para realizar ventas");
+        }
 
         List<Producto> productos = productoRepository.findAllById(productosIds);
 

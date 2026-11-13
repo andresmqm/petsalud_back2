@@ -20,9 +20,15 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Override
+   @Override
     public Usuario registrarUsuario(Usuario usuario) {
-        // Verifica si el email ya está registrado
+        if (usuario.getNombre() == null || usuario.getNombre().isBlank() ||
+            usuario.getApellido() == null || usuario.getApellido().isBlank() ||
+            usuario.getEmail() == null || usuario.getEmail().isBlank() ||
+            usuario.getDireccion() == null || usuario.getDireccion().isBlank()) {
+            throw new IllegalArgumentException("Todos los datos obligatorios (nombre, apellido, email y dirección) son requeridos");
+        }
+
         Optional<Usuario> usuarioExistente = usuarioRepository.findByEmail(usuario.getEmail());
         if (usuarioExistente.isPresent()) {
             throw new IllegalArgumentException("El email ya está registrado");

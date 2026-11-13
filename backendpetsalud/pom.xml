@@ -44,23 +44,23 @@
 		</dependency>
 
 		<!-- Java JWT (JJWT) -->
-     <dependency>
-      <groupId>io.jsonwebtoken</groupId>
-      <artifactId>jjwt-api</artifactId>
-       <version>0.11.5</version>
-     </dependency>
-    <dependency>
-       <groupId>io.jsonwebtoken</groupId>
-       <artifactId>jjwt-impl</artifactId>
-       <version>0.11.5</version>
-       <scope>runtime</scope>
-    </dependency>
-    <dependency>
-       <groupId>io.jsonwebtoken</groupId>
-       <artifactId>jjwt-jackson</artifactId>
-       <version>0.11.5</version>
-       <scope>runtime</scope>
-    </dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.11.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.11.5</version>
+			<scope>runtime</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -109,6 +109,27 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+
+			<!-- Plugin JaCoCo para cobertura de código -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.12</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
