@@ -1,9 +1,8 @@
-package com.petsalud.backendpetsalud.serviceTest;
+package com.petsalud.backendpetsalud.service;
 
 import com.petsalud.backendpetsalud.entity.Rol;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
-import com.petsalud.backendpetsalud.service.UsuarioServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,8 +46,9 @@ class UsuarioServiceImplTest {
                 .build();
     }
 
+    // Con datos completos, el cual debería encriptar la contraseña, asignar rol CLIENTE y guardar
     @Test
-    void registrarUsuario_ConDatosCompletos_DeberiaGuardarYAsignarRolCliente() {
+    void registrarUsuario() {
         when(usuarioRepository.findByEmail(usuarioValido.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode("123456")).thenReturn("hashedPassword");
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(i -> i.getArgument(0));
@@ -61,8 +61,9 @@ class UsuarioServiceImplTest {
         verify(usuarioRepository, times(1)).save(usuarioValido);
     }
 
+    // Con datos incompletos (campos obligatorios nulos), el cual debería lanzar una excepción y no guardar
     @Test
-    void registrarUsuario_ConDatosIncompletos_DeberiaLanzarExcepcion() {
+    void registrarUsuarioIncompleto() {
         Usuario usuarioIncompleto = Usuario.builder()
                 .nombre("Carlos")
                 .email("carlos@petsalud.cl")
@@ -75,8 +76,9 @@ class UsuarioServiceImplTest {
         verify(usuarioRepository, never()).save(any());
     }
 
+    // Con un email ya registrado en el sistema, el cual debería lanzar una excepción y no guardar
     @Test
-    void registrarUsuario_ConEmailDuplicado_DeberiaLanzarExcepcion() {
+    void registrarUsuarioEmailDuplicado() {
         when(usuarioRepository.findByEmail(usuarioValido.getEmail())).thenReturn(Optional.of(usuarioValido));
 
         assertThrows(IllegalArgumentException.class, () -> {
@@ -86,8 +88,9 @@ class UsuarioServiceImplTest {
         verify(usuarioRepository, never()).save(any());
     }
 
+    // Búsqueda por ID y por email existente, el cual debería retornar el usuario con un rol válido
     @Test
-    void obtenerUsuarioPorIdYEmail_Existente_DeberiaRetornarUsuarioConRolValido() {
+    void obtenerUsuario() {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioValido));
         when(usuarioRepository.findByEmail("andres@petsalud.cl")).thenReturn(Optional.of(usuarioValido));
 
@@ -99,8 +102,9 @@ class UsuarioServiceImplTest {
         assertTrue(porEmail.isPresent());
     }
 
+    // Con un usuario existente, el cual debería actualizar nombre, apellido, teléfono y dirección
     @Test
-    void actualizarUsuario_Existente_DeberiaActualizarDatos() {
+    void actualizarUsuario() {
         Usuario datosNuevos = Usuario.builder()
                 .nombre("Andrés Manuel")
                 .apellido("Quintero Mejía")
@@ -117,8 +121,9 @@ class UsuarioServiceImplTest {
         assertEquals("Nueva Dirección 456", actualizado.getDireccion());
     }
 
+    // Listar todos los usuarios y eliminar un usuario por su ID
     @Test
-    void listarYEliminarUsuarios_DeberiaEjecutarCorrectamente() {
+    void listarYEliminarUsuarios() {
         when(usuarioRepository.findAll()).thenReturn(List.of(usuarioValido));
 
         List<Usuario> lista = usuarioService.listarUsuarios();
@@ -126,5 +131,17 @@ class UsuarioServiceImplTest {
 
         usuarioService.eliminarUsuario(1L);
         verify(usuarioRepository, times(1)).deleteById(1L);
+    }
+
+    // Cuando se intenta actualizar un usuario cuyo ID no existe, el cual debería lanzar una excepción
+    @Test
+    void actualizarUsuarioNoEncontrado() {
+        when(usuarioRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            usuarioService.actualizarUsuario(99L, usuarioValido);
+        });
+
+        verify(usuarioRepository, never()).save(any());
     }
 }

@@ -1,4 +1,4 @@
-package com.petsalud.backendpetsalud.serviceTest;
+package com.petsalud.backendpetsalud.service;
 
 import com.petsalud.backendpetsalud.entity.Producto;
 import com.petsalud.backendpetsalud.entity.Rol;
@@ -7,7 +7,6 @@ import com.petsalud.backendpetsalud.entity.Venta;
 import com.petsalud.backendpetsalud.repository.ProductoRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
 import com.petsalud.backendpetsalud.repository.VentaRepository;
-import com.petsalud.backendpetsalud.service.VentaServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,8 +67,9 @@ class VentaServiceImplTest {
                 .build();
     }
 
+    // Con stock y usuario CLIENTE válido, el cual debería calcular el total, descontar stock y guardar la venta
     @Test
-    void realizarVenta_ConStockYUsuarioValido_CalculaTotalYDescuentaStock() {
+    void realizarVenta() {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(clienteValido));
         when(productoRepository.findAllById(List.of(10L, 20L))).thenReturn(List.of(producto1, producto2));
         when(ventaRepository.save(any(Venta.class))).thenAnswer(i -> i.getArgument(0));
@@ -85,8 +85,9 @@ class VentaServiceImplTest {
         verify(ventaRepository, times(1)).save(any(Venta.class));
     }
 
+    // Cuando un producto tiene stock en 0, el cual debería lanzar una excepción y no guardar la venta
     @Test
-    void realizarVenta_SinStockDisponible_DeberiaLanzarExcepcion() {
+    void realizarVentaSinStock() {
         producto1.setStock(0);
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(clienteValido));
@@ -100,8 +101,9 @@ class VentaServiceImplTest {
         verify(ventaRepository, never()).save(any());
     }
 
+    // Cuando el usuario tiene datos incompletos (ej. dirección nula), el cual debería lanzar una excepción
     @Test
-    void realizarVenta_UsuarioConDatosIncompletos_DeberiaLanzarExcepcion() {
+    void realizarVentaUsuarioIncompleto() {
         Usuario usuarioSinDireccion = Usuario.builder()
                 .id(2L)
                 .nombre("Pedro")
@@ -120,8 +122,9 @@ class VentaServiceImplTest {
         verify(ventaRepository, never()).save(any());
     }
 
+    // Cuando el usuario no tiene rol CLIENTE (ej. VETERINARIO), el cual debería lanzar una excepción
     @Test
-    void realizarVenta_UsuarioConRolNoAutorizado_DeberiaLanzarExcepcion() {
+    void realizarVentaRolNoAutorizado() {
         clienteValido.setRol(Rol.VETERINARIO);
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(clienteValido));
@@ -134,8 +137,9 @@ class VentaServiceImplTest {
         verify(ventaRepository, never()).save(any());
     }
 
+    // Cuando uno de los IDs de producto no existe en la base de datos, el cual debería lanzar una excepción
     @Test
-    void realizarVenta_ProductoInexistente_DeberiaLanzarExcepcion() {
+    void realizarVentaProductoInexistente() {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(clienteValido));
         when(productoRepository.findAllById(List.of(10L, 99L))).thenReturn(List.of(producto1));
 
@@ -146,8 +150,9 @@ class VentaServiceImplTest {
         verify(ventaRepository, never()).save(any());
     }
 
+    // Consultas de venta por ID, listado por usuario y listado general
     @Test
-    void consultasVentas_DeberiaRetornarListasYDetalle() {
+    void consultarVentas() {
         Venta v = Venta.builder().id(100L).usuario(clienteValido).total(new BigDecimal("12500")).build();
 
         when(ventaRepository.findById(100L)).thenReturn(Optional.of(v));
